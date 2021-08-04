@@ -1,15 +1,14 @@
-import requests
+import json
 
 from _config import SERVER_ADDRESS, API_KEY
+from jellyfin.Jellyfin import Jellyfin
 
 
-def get(request):
-    return requests.get(f"{SERVER_ADDRESS}/{request}?api_key={API_KEY}").json()
-
-
-def list_all_libraries():
-    print(get("Persons")["StartIndex"])
+def print_json(parsed):
+    print(json.dumps(parsed, indent=4, sort_keys=True))
 
 
 if __name__ == '__main__':
-    print(list_all_libraries())
+    jf = Jellyfin(SERVER_ADDRESS, API_KEY)
+    result = jf.Library.VirtualFolders()
+    print(result)
