@@ -3,6 +3,8 @@
 
 _config.py
 
+_temp
+_temp/**
 data_classes
 data_classes/**
 query_classes
