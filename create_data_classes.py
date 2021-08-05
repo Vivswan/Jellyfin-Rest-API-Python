@@ -1,4 +1,3 @@
-import json
 import os
 import re
 import shutil
@@ -20,18 +19,17 @@ def create_json_schema(url, json_schema_path: Path, combine_json_schema: Path):
         "type": "object",
         "properties": {},
         "additionalProperties": False,
-        "$schema": "http://json-schema.org/schema#"
-
+        "$schema": "https://json-schema.org/schema#"
     }
-    with open(json_schema_path.joinpath("all.json"), "r") as file:
-        json_schema = json.loads(file.read())
-        for i in json_schema["oneOf"]:
-            all_json_schema["properties"][i["$ref"].replace(".json", "")] = {
-                "allOf": [{"$ref": i["$ref"]}],
-                "nullable": True
-            }
-    with open(combine_json_schema, "w") as file:
-        file.write(json.dumps(all_json_schema, indent=4))
+    # with open(json_schema_path.joinpath("all.json"), "r") as file:
+    #     json_schema = json.loads(file.read())
+    #     for i in json_schema["oneOf"]:
+    #         all_json_schema["properties"][i["$ref"].replace(".json", "")] = {
+    #             "allOf": [{"$ref": i["$ref"]}],
+    #             "nullable": True
+    #         }
+    # with open(combine_json_schema, "w") as file:
+    #     file.write(json.dumps(all_json_schema, indent=4))
 
 
 def create_py(combine_json_schema_path, combine_classes_py_path):
@@ -82,9 +80,9 @@ def to_class_dict(combine_classes_py_path) -> (NewClassFile, List[NewClassFile])
     return core_py, new_class_list
 
 
-def add_imports(core_py, new_class_list):
+def add_imports(core_py, new_class_list, base_folder_name):
     for new_class in new_class_list:
-        imports_str = f"from schema.classes.{core_py.filename} import *\n"
+        imports_str = f"from {base_folder_name}.classes.{core_py.filename} import *\n"
 
         if new_class == core_py:
             continue
@@ -96,14 +94,14 @@ def add_imports(core_py, new_class_list):
             not_variable = "[^a-zA-Z0-9]"
             matches = re.findall(not_variable + new_class_j.class_name + not_variable, new_class.content)
             if len(matches) > 0:
-                imports_str += f"from schema.classes.{new_class_j.filename} import {new_class_j.class_name}\n"
+                imports_str += f"from {base_folder_name}.classes.{new_class_j.filename} import {new_class_j.class_name}\n"
 
         new_class.content = imports_str + "\n\n" + new_class.content
 
 
-def main(url):
+def main(url, location):
     path = Path(__file__)
-    schema_path = path.parent.joinpath("schema")
+    schema_path = path.parent.joinpath(location)
     json_schema_path = schema_path.joinpath("json")
     classes_path = schema_path.joinpath("classes")
     combine_json_schema_path = json_schema_path.joinpath("_all.json")
@@ -122,12 +120,16 @@ def main(url):
     create_json_schema(url, json_schema_path, combine_json_schema_path)
     create_py(combine_json_schema_path, combine_classes_py_path)
     core_py, new_class_list = to_class_dict(combine_classes_py_path)
-    add_imports(core_py, new_class_list)
+    add_imports(core_py, new_class_list, schema_path.name)
 
     for new_class in new_class_list:
         with open(classes_path.joinpath(f"{new_class.filename}.py"), "w") as file:
             file.write(new_class.content)
     exit()
 
+    # os.remove(combine_classes_py_path)
+    # os.remove(combine_json_schema_path)
+
+
 if __name__ == '__main__':
-    main("http://localhost:8096/api-docs/openapi.json")
+    main("http://localhost:8096/api-docs/openapi.json", "data_classes")
