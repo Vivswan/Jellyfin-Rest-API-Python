@@ -1,8 +1,6 @@
 import copy
 import json
-import os
 import re
-import shutil
 from pathlib import Path
 
 import requests
@@ -172,6 +170,7 @@ def json_schema_to_python_function(location, schema, http_request_method):
             python_type = json_type_to_python_str(parameter['type'])
             if python_type == "List" and 'items' in parameter and 'type' in parameter['items']:
                 python_type += "[" + json_type_to_python_str(parameter['items']['type']) + "]"
+                imports_list.add("from typing import List")
 
             if parameter_name in required_parameters:
                 arg_text += f", {to_snake_case(parameter_name)}: {python_type}"
@@ -192,7 +191,8 @@ def json_schema_to_python_function(location, schema, http_request_method):
         imports_list.add("import requests")
 
     content += " " * 4 + f"def {to_snake_case(function_name)}(self{arg_text}) -> {responses}:\n"
-
+    # if http_request_method == "post" and len(required_parameters) == 0:
+    #     print(location, function_name)
     if len(required_parameters + non_required_parameters) > 0:
         content += " " * 8 + "request_args = {}\n"
         for parameter_name in required_parameters + non_required_parameters:
@@ -204,12 +204,14 @@ def json_schema_to_python_function(location, schema, http_request_method):
 
             content += " " * indent + f"request_args['{original_name}'] = {parameter_name}\n"
 
-    content += " " * 8 + f"return self.{http_request_method}(path='{location}'"
+    content += " " * 8 + f"return self._{http_request_method}(path='{location}'"
     if len(required_parameters + non_required_parameters) > 0:
         content += f", request_args=request_args"
     if responses != "requests.Response":
         content += f", response_type={responses}"
 
+    if 'int' in responses:
+        print(location, function_name, responses)
     content += ")\n"
     return content, list(imports_list)
 
@@ -278,7 +280,7 @@ def get_main_class_content(all_classes_content, class_name, path):
     padding += 4
     content += " " * padding + f"super({class_name}, self).__init__(*args, **kargs)\n"
     for i in all_classes_content:
-        content += " " * padding + f"self.{i} = {i}(*args, **kargs)\n"
+        content += " " * padding + f"self.{to_snake_case(i)} = {i}(*args, **kargs)\n"
     return content
 
 
@@ -290,14 +292,14 @@ def main(url, location, data_classes):
     data_classes_path = path.parent.joinpath(data_classes).joinpath("__init__.py")
     openapi_json_path = temp_path.joinpath("query_openapi.json")
 
-    if os.path.exists(query_path):
-        shutil.rmtree(query_path)
-
-    os.mkdir(query_path)
-    if not os.path.exists(temp_path):
-        os.mkdir(temp_path)
-
-    save_openapi_json(url, openapi_json_path)
+    # if os.path.exists(query_path):
+    #     shutil.rmtree(query_path)
+    #
+    # os.mkdir(query_path)
+    # if not os.path.exists(temp_path):
+    #     os.mkdir(temp_path)
+    #
+    # save_openapi_json(url, openapi_json_path)
     title, query_tree = create_tree(openapi_json_path)
     title = title.split(' ')[0]
     all_classes_dict = create_py_classes(query_tree)
