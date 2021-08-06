@@ -24,8 +24,8 @@ def parse_url_for_query_classes(url_path: str, request_args):
 
 
 class BaseRequestClass:
+    type_request = Union[None, object]
     type_response = TypeVar('type_response', bound=Union[
-        None,
         str,
         int,
         float,
@@ -96,7 +96,7 @@ class BaseRequestClass:
     def _get(
             self,
             path: str,
-            request_args: Union[None, object] = None,
+            request_args: type_request = None,
             response_type: type_response = requests.Response
     ) -> type_response:
         return self._send_request('get', path, request_args, response_type)

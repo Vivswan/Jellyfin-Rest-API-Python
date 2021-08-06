@@ -135,7 +135,7 @@ def json_schema_to_python_function(location, schema, http_request_method):
     for parameter_name in required_parameters + non_required_parameters:
         parameter = parameters[parameter_name]
         if "description" in parameter:
-            content += " " * 4 + f"# {to_snake_case(parameter_name)}: {parameter['description']}\n"
+            content += " " * 4 + f"# {to_snake_case(parameter_name)} - {parameter['description']}\n"
 
         if '$ref' in json.dumps(parameter):
             is_array = False
@@ -191,8 +191,6 @@ def json_schema_to_python_function(location, schema, http_request_method):
         imports_list.add("import requests")
 
     content += " " * 4 + f"def {to_snake_case(function_name)}(self{arg_text}) -> {responses}:\n"
-    # if http_request_method == "post" and len(required_parameters) == 0:
-    #     print(location, function_name)
     if len(required_parameters + non_required_parameters) > 0:
         content += " " * 8 + "request_args = {}\n"
         for parameter_name in required_parameters + non_required_parameters:
@@ -210,8 +208,6 @@ def json_schema_to_python_function(location, schema, http_request_method):
     if responses != "requests.Response":
         content += f", response_type={responses}"
 
-    if 'int' in responses:
-        print(location, function_name, responses)
     content += ")\n"
     return content, list(imports_list)
 
