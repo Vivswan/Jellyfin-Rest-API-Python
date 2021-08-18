@@ -144,7 +144,7 @@ def get_init_file_content(all_class_path, new_class_list, folder_name):
     return content
 
 
-def main(url, location):
+def create_data_classes(url, location):
     path = Path(__file__)
     schema_path = path.parent.joinpath(location)
 
@@ -179,7 +179,3 @@ def main(url, location):
 
     # os.remove(combine_classes_py_path)
     # os.remove(combine_json_schema_path)
-
-
-if __name__ == '__main__':
-    main("http://localhost:8096/api-docs/openapi.json", "data_classes")

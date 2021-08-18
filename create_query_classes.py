@@ -1,6 +1,8 @@
 import copy
 import json
+import os
 import re
+import shutil
 from pathlib import Path
 
 import requests
@@ -53,7 +55,7 @@ def create_tree(openapi_json_path):
     return openapi["info"]["title"], dict_tree
 
 
-def json_schema_to_python_function(location, schema, http_request_method):
+def json_schema_to_python_function(location: str, schema: object, http_request_method: str):
     function_name = schema["operationId"]
     parameters = {}
     optional_parameters = []
@@ -62,9 +64,12 @@ def json_schema_to_python_function(location, schema, http_request_method):
     nullable_parameters = []
     non_required_parameters = []
     ref_parameter = []
-    responses = None
+    responses = "requests.Response"
 
     imports_list = set()
+
+    if function_name.lower() in ["get", "post", "delete", "head"]:
+        function_name += location.split("/")[-1]
 
     if "parameters" in schema:
         for parameter in schema["parameters"]:
@@ -86,7 +91,7 @@ def json_schema_to_python_function(location, schema, http_request_method):
     if "requestBody" in schema:
         if "application/json" in schema["requestBody"]['content']:
             request_body_schema = schema["requestBody"]['content']["application/json"]["schema"]
-            name = to_snake_case("request_body")
+            name = to_snake_case("requestBody")
             parameters[name] = copy.deepcopy(request_body_schema)
             parameters[name]['original_name'] = "requestBody"
             if "nullable" in request_body_schema:
@@ -103,7 +108,6 @@ def json_schema_to_python_function(location, schema, http_request_method):
             raise NotImplemented
     if "responses" in schema:
         if '200' in schema["responses"]:
-            responses = None
             status = schema["responses"]['200']
             if 'content' in status:
                 if 'application/json' in status['content']:
@@ -123,7 +127,7 @@ def json_schema_to_python_function(location, schema, http_request_method):
                             responses = "List[" + json_type_to_python_str(json_response['items']['type']) + "]"
                             imports_list.add("from typing import List")
         elif '204' in schema["responses"]:
-            responses = None
+            pass
         else:
             raise NotImplemented
 
@@ -131,12 +135,9 @@ def json_schema_to_python_function(location, schema, http_request_method):
     # content += " " * 4 + f"#          parameters={list(parameters.keys())}\n"
     # content += " " * 4 + f"# required_parameters={required_parameters}\n"
     # content += " " * 4 + f"# nullable_parameters={nullable_parameters}\n"
-    arg_text = ""
+    args_type_dict = {}
     for parameter_name in required_parameters + non_required_parameters:
         parameter = parameters[parameter_name]
-        if "description" in parameter:
-            content += " " * 4 + f"# {to_snake_case(parameter_name)} - {parameter['description']}\n"
-
         if '$ref' in json.dumps(parameter):
             is_array = False
             ref = None
@@ -162,9 +163,9 @@ def json_schema_to_python_function(location, schema, http_request_method):
                 imports_list.add("from typing import List")
 
             if parameter_name in required_parameters:
-                arg_text += f", {to_snake_case(parameter_name)}: {python_type}"
+                args_type_dict[parameter_name] = python_type
             else:
-                arg_text += f", {to_snake_case(parameter_name)}: Optional[{python_type}] = None"
+                args_type_dict[parameter_name] = f"Optional[{python_type}] = None"
                 imports_list.add("from typing import Optional")
         elif 'type' in parameter:
             python_type = json_type_to_python_str(parameter['type'])
@@ -173,24 +174,66 @@ def json_schema_to_python_function(location, schema, http_request_method):
                 imports_list.add("from typing import List")
 
             if parameter_name in required_parameters:
-                arg_text += f", {to_snake_case(parameter_name)}: {python_type}"
+                args_type_dict[parameter_name] = python_type
             else:
-                arg_text += f", {to_snake_case(parameter_name)}: Optional[{python_type}]"
+                args_type_dict[parameter_name] = f"Optional[{python_type}]"
                 imports_list.add("from typing import Optional")
                 if parameter_name in default_parameters:
-                    arg_text += f" = {parameter['default']}"
+                    args_type_dict[parameter_name] += f" = {parameter['default']}"
                 else:
-                    arg_text += f" = None"
+                    args_type_dict[parameter_name] += f" = None"
         else:
             raise NotImplemented
 
         # print(parameter)
 
-    if responses is None:
-        responses = "requests.Response"
-        imports_list.add("import requests")
-
+    arg_text = ""
+    for parameter_name in required_parameters + non_required_parameters:
+        arg_text += f", {parameter_name}: {args_type_dict[parameter_name]}"
     content += " " * 4 + f"def {to_snake_case(function_name)}(self{arg_text}) -> {responses}:\n"
+
+    content += " " * 8 + "\"\"\""
+    if "summary" in schema:
+        content += schema["summary"] + "\n"
+    content += "\n"
+    content += " " * 8 + "Http:\n"
+    content += " " * 12 + f"<{http_request_method}>: {location}\n"
+
+    if len(parameters.keys()) > 0:
+        content += "\n"
+        content += " " * 8 + "Args:"
+        for parameter_name in required_parameters + non_required_parameters:
+            parameter = parameters[parameter_name]
+            parameter_split = args_type_dict[parameter_name].split('=')
+            content += "\n" + " " * 12 + f"{to_snake_case(parameter_name)} "
+            if "Optional" in parameter_split[0].strip():
+                content += f"({parameter_split[0].replace('Optional[', '').strip()[:-1]}"
+            else:
+                content += f"({parameter_split[0].strip()}"
+            if len(parameter_split) > 1 and parameter_split[1].strip() != "None":
+                content += f" = {parameter_split[1].strip()}"
+            content += f")"
+
+            if "description" in parameter:
+                content += f": {parameter['description']}"
+        content += "\n"
+
+    if "responses" in schema:
+        content += "\n"
+        content += " " * 8 + "Returns:\n"
+        for status_code in schema["responses"]:
+            status = schema["responses"][status_code]
+            content += " " * 12 + f"<{status_code}> "
+            if status_code[0] == '2':
+                content += f"{responses}"
+            else:
+                content += "requests.Response"
+
+            if 'description' in status:
+                content += f": {status['description']}"
+            content += "\n"
+    content += " " * 8 + "\"\"\"\n"
+
     if len(required_parameters + non_required_parameters) > 0:
         content += " " * 8 + "request_args = {}\n"
         for parameter_name in required_parameters + non_required_parameters:
@@ -207,6 +250,9 @@ def json_schema_to_python_function(location, schema, http_request_method):
         content += f", request_args=request_args"
     if responses != "requests.Response":
         content += f", response_type={responses}"
+
+    if responses == "requests.Response":
+        imports_list.add("import requests")
 
     content += ")\n"
     return content, list(imports_list)
@@ -280,7 +326,7 @@ def get_main_class_content(all_classes_content, class_name, path):
     return content
 
 
-def main(url, location, data_classes):
+def create_query_classes(url, location, data_classes):
     path = Path(__file__)
     query_path = path.parent.joinpath(location)
 
@@ -288,10 +334,10 @@ def main(url, location, data_classes):
     data_classes_path = path.parent.joinpath(data_classes).joinpath("__init__.py")
     openapi_json_path = temp_path.joinpath("query_openapi.json")
 
-    # if os.path.exists(query_path):
-    #     shutil.rmtree(query_path)
-    #
-    # os.mkdir(query_path)
+    if os.path.exists(query_path):
+        shutil.rmtree(query_path)
+
+    os.mkdir(query_path)
     # if not os.path.exists(temp_path):
     #     os.mkdir(temp_path)
     #
@@ -312,4 +358,4 @@ def main(url, location, data_classes):
 
 
 if __name__ == '__main__':
-    main("http://localhost:8096/api-docs/openapi.json", "query_classes", "data_classes")
+    create_query_classes("http://localhost:8096/api-docs/openapi.json", "query_classes", "data_classes")
