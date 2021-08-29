@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class CaseInsensitiveEnum(Enum):
+class CaseInsensitiveEnum(str, Enum):
     @classmethod
     def _missing_(cls, value):
         for member in cls:
@@ -10,3 +10,6 @@ class CaseInsensitiveEnum(Enum):
         for member in cls:
             if member.value.lower() == value.lower():
                 return member
+
+    def __str__(self):
+        return str(self.value)

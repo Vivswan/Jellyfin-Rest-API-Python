@@ -187,10 +187,10 @@ def json_schema_to_python_function(location: str, schema: object, http_request_m
 
         # print(parameter)
 
-    arg_text = ""
+    arg_text = "self"
     for parameter_name in required_parameters + non_required_parameters:
-        arg_text += f", {parameter_name}: {args_type_dict[parameter_name]}"
-    content += " " * 4 + f"def {to_snake_case(function_name)}(self{arg_text}) -> {responses}:\n"
+        arg_text += f", \n" + (" " * 12) + f"{parameter_name}: {args_type_dict[parameter_name]}"
+    content += " " * 4 + f"def {to_snake_case(function_name)}(\n" + (" " * 12) + f"{arg_text}\n" + (" " * 4) + f") -> {responses}:\n"
 
     content += " " * 8 + "\"\"\""
     if "summary" in schema:
@@ -235,15 +235,11 @@ def json_schema_to_python_function(location: str, schema: object, http_request_m
     content += " " * 8 + "\"\"\"\n"
 
     if len(required_parameters + non_required_parameters) > 0:
-        content += " " * 8 + "request_args = {}\n"
+        content += " " * 8 + "request_args = dict(\n"
         for parameter_name in required_parameters + non_required_parameters:
             original_name = parameters[parameter_name]['original_name']
-            indent = 8
-            if parameter_name in non_required_parameters:
-                content += " " * indent + f"if {parameter_name} is not None:\n"
-                indent += 4
-
-            content += " " * indent + f"request_args['{original_name}'] = {parameter_name}\n"
+            content += " " * 12 + f"{original_name}={parameter_name},\n"
+        content += " " * 8 + ")\n"
 
     content += " " * 8 + f"return self._{http_request_method}(path='{location}'"
     if len(required_parameters + non_required_parameters) > 0:

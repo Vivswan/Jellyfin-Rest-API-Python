@@ -7,54 +7,11 @@
 #     result = kitsu_episode_from_dict(json.loads(json_string))
 
 from dataclasses import dataclass
-from typing import Optional, Dict, Any, TypeVar, Callable, Type, cast
+from typing import Optional
+
+from util.from_type import *
 
 T = TypeVar("T")
-
-
-def from_dict(f: Callable[[Any], T], x: Any) -> Dict[str, T]:
-    assert isinstance(x, dict)
-    return {k: f(v) for (k, v) in x.items()}
-
-
-def from_none(x: Any) -> Any:
-    assert x is None
-    return x
-
-
-def from_union(fs, x):
-    for f in fs:
-        try:
-            return f(x)
-        except:
-            pass
-    assert False
-
-
-def from_str(x: Any) -> str:
-    assert isinstance(x, str)
-    return x
-
-
-def to_class(c: Type[T], x: Any) -> dict:
-    assert isinstance(x, c)
-    return cast(Any, x).to_dict()
-
-
-def from_float(x: Any) -> float:
-    assert isinstance(x, (float, int)) and not isinstance(x, bool)
-    return float(x)
-
-
-def from_int(x: Any) -> int:
-    assert isinstance(x, (float, int)) and not isinstance(x, bool)
-    return int(x)
-
-
-def to_float(x: Any) -> float:
-    assert isinstance(x, float)
-    return x
-
 
 @dataclass
 class Meta:
@@ -146,9 +103,9 @@ class KitsuEpisode:
         result["canonicalTitle"] = from_union([from_str, from_none], self.canonical_title)
         result["createdAt"] = from_union([from_str, from_none], self.created_at)
         result["id"] = from_union([from_str, from_none], self.id)
-        result["length"] = from_union([from_none, from_str], self.length)
-        result["number"] = from_union([to_float, from_none], self.number)
-        result["seasonNumber"] = from_union([to_float, from_none], self.season_number)
+        result["length"] = from_union([from_none, from_int], self.length)
+        result["number"] = from_union([from_int, from_none], self.number)
+        result["seasonNumber"] = from_union([from_int, from_none], self.season_number)
         result["synopsis"] = from_union([from_str, from_none], self.synopsis)
         result["thumbnail"] = from_union([lambda x: to_class(Thumbnail, x), from_none], self.thumbnail)
         result["titles"] = from_union([lambda x: to_class(Titles, x), from_none], self.titles)

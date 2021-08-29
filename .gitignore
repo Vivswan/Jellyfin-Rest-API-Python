@@ -5,10 +5,8 @@ _config.py
 
 _temp
 _temp/**
-data_classes
-data_classes/**
-query_classes
-query_classes/**
+data_kitsu
+data_kitsu/**
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

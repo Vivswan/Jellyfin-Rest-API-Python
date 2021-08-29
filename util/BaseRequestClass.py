@@ -21,12 +21,14 @@ def parse_url_for_query_classes(url_path: str, request_args: Union[None, Dict] =
         return url_path, {}
 
     new_request_args = {}
-    for parameter_name in request_args:
+    for parameter_name, parameter_value in request_args.items():
+        if parameter_value is None:
+            continue
         url_parameter_name = "{" + parameter_name + "}"
         if url_parameter_name in url_path:
-            url_path = url_path.replace(url_parameter_name, str(request_args[parameter_name]))
+            url_path = url_path.replace(url_parameter_name, str(parameter_value))
         else:
-            new_request_args[parameter_name] = arg_to_json(request_args[parameter_name])
+            new_request_args[parameter_name] = arg_to_json(parameter_value)
     return url_path, new_request_args
 
 
@@ -62,7 +64,7 @@ def to_response_type(response: requests.Response, response_type: T) -> T:
         raise HTTPError(
             url=response.url,
             code=response.status_code,
-            msg=f"<{response.reason}> :{response.text}",
+            msg=f"<{response.reason}>: {response.text}",
             hdrs=response.headers,
             fp=None
         )

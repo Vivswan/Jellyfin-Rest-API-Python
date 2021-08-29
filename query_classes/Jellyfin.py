@@ -1,0 +1,106 @@
+from query_classes.Albums import Albums
+from query_classes.Artists import Artists
+from query_classes.Audio import Audio
+from query_classes.Auth import Auth
+from query_classes.Branding import Branding
+from query_classes.Channels import Channels
+from query_classes.Collections import Collections
+from query_classes.Devices import Devices
+from query_classes.DisplayPreferences import DisplayPreferences
+from query_classes.Dlna import Dlna
+from query_classes.Environment import Environment
+from query_classes.FallbackFont import FallbackFont
+from query_classes.Genres import Genres
+from query_classes.GetUtcTime import GetUtcTime
+from query_classes.Images import Images
+from query_classes.Items import Items
+from query_classes.Libraries import Libraries
+from query_classes.Library import Library
+from query_classes.LiveStreams import LiveStreams
+from query_classes.LiveTv import LiveTv
+from query_classes.Localization import Localization
+from query_classes.Movies import Movies
+from query_classes.MusicGenres import MusicGenres
+from query_classes.Notifications import Notifications
+from query_classes.Packages import Packages
+from query_classes.Persons import Persons
+from query_classes.Playback import Playback
+from query_classes.Playlists import Playlists
+from query_classes.Plugins import Plugins
+from query_classes.Providers import Providers
+from query_classes.QuickConnect import QuickConnect
+from query_classes.Reports import Reports
+from query_classes.Repositories import Repositories
+from query_classes.ScheduledTasks import ScheduledTasks
+from query_classes.Search import Search
+from query_classes.Sessions import Sessions
+from query_classes.Shows import Shows
+from query_classes.Songs import Songs
+from query_classes.Startup import Startup
+from query_classes.Studios import Studios
+from query_classes.SyncPlay import SyncPlay
+from query_classes.System import System
+from query_classes.TMDbBoxSets import TMDbBoxSets
+from query_classes.Trailers import Trailers
+from query_classes.Trakt import Trakt
+from query_classes.Users import Users
+from query_classes.Videos import Videos
+from query_classes.Years import Years
+from query_classes.user_usage_stats import user_usage_stats
+from query_classes.web import web
+from util.BaseRequestClass import BaseRequestClass
+
+
+class Jellyfin(BaseRequestClass):
+    def __init__(self, *args, **kargs):
+        super(Jellyfin, self).__init__(*args, **kargs)
+        self.system = System(*args, **kargs)
+        self.auth = Auth(*args, **kargs)
+        self.artists = Artists(*args, **kargs)
+        self.audio = Audio(*args, **kargs)
+        self.branding = Branding(*args, **kargs)
+        self.channels = Channels(*args, **kargs)
+        self.collections = Collections(*args, **kargs)
+        self.web = web(*args, **kargs)
+        self.devices = Devices(*args, **kargs)
+        self.display_preferences = DisplayPreferences(*args, **kargs)
+        self.dlna = Dlna(*args, **kargs)
+        self.videos = Videos(*args, **kargs)
+        self.environment = Environment(*args, **kargs)
+        self.library = Library(*args, **kargs)
+        self.items = Items(*args, **kargs)
+        self.genres = Genres(*args, **kargs)
+        self.music_genres = MusicGenres(*args, **kargs)
+        self.persons = Persons(*args, **kargs)
+        self.studios = Studios(*args, **kargs)
+        self.users = Users(*args, **kargs)
+        self.images = Images(*args, **kargs)
+        self.albums = Albums(*args, **kargs)
+        self.playlists = Playlists(*args, **kargs)
+        self.songs = Songs(*args, **kargs)
+        self.libraries = Libraries(*args, **kargs)
+        self.movies = Movies(*args, **kargs)
+        self.shows = Shows(*args, **kargs)
+        self.trailers = Trailers(*args, **kargs)
+        self.live_tv = LiveTv(*args, **kargs)
+        self.localization = Localization(*args, **kargs)
+        self.live_streams = LiveStreams(*args, **kargs)
+        self.playback = Playback(*args, **kargs)
+        self.notifications = Notifications(*args, **kargs)
+        self.packages = Packages(*args, **kargs)
+        self.repositories = Repositories(*args, **kargs)
+        self.user_usage_stats = user_usage_stats(*args, **kargs)
+        self.sessions = Sessions(*args, **kargs)
+        self.plugins = Plugins(*args, **kargs)
+        self.quick_connect = QuickConnect(*args, **kargs)
+        self.reports = Reports(*args, **kargs)
+        self.scheduled_tasks = ScheduledTasks(*args, **kargs)
+        self.search = Search(*args, **kargs)
+        self.startup = Startup(*args, **kargs)
+        self.fallback_font = FallbackFont(*args, **kargs)
+        self.providers = Providers(*args, **kargs)
+        self.sync_play = SyncPlay(*args, **kargs)
+        self.get_utc_time = GetUtcTime(*args, **kargs)
+        self.t_m_db_box_sets = TMDbBoxSets(*args, **kargs)
+        self.trakt = Trakt(*args, **kargs)
+        self.years = Years(*args, **kargs)
