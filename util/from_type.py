@@ -10,11 +10,20 @@
 #
 #     result = data_all_from_dict(json.loads(json_string))
 
+# noinspection PyUnresolvedReferences
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any, List, Dict, TypeVar, Type, Callable, cast
+# noinspection PyUnresolvedReferences
+from typing import Optional
+# noinspection PyUnresolvedReferences
+from uuid import UUID
 
 import dateutil.parser
+
+# noinspection PyUnresolvedReferences
+from util.CaseInsensitiveEnum import CaseInsensitiveEnum
 
 T = TypeVar("T")
 EnumT = TypeVar("EnumT", bound=Enum)

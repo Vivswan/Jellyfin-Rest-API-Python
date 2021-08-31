@@ -1,3 +1,4 @@
+from util.from_type import *
 class ItemFields(CaseInsensitiveEnum):
     """Used to control the data that gets attached to DtoBaseItems."""
     AIR_TIME = "AirTime"

@@ -6,9 +6,6 @@
 #
 #     result = kitsu_episode_from_dict(json.loads(json_string))
 
-from dataclasses import dataclass
-from typing import Optional
-
 from util.from_type import *
 
 T = TypeVar("T")

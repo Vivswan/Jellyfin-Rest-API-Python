@@ -1,3 +1,4 @@
+from util.from_type import *
 class ImageFormat(CaseInsensitiveEnum):
     """Enum ImageOutputFormat."""
     BMP = "Bmp"

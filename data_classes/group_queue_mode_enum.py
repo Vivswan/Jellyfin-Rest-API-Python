@@ -1,3 +1,4 @@
+from util.from_type import *
 class GroupQueueModeEnum(CaseInsensitiveEnum):
     """Enum GroupQueueMode.
     

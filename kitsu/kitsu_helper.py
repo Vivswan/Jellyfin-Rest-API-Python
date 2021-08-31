@@ -6,8 +6,8 @@ from urllib.error import HTTPError
 
 import requests
 
-from anime.kitsu_anime import Anime
-from anime.kitsu_episode import KitsuEpisode
+from kitsu.kitsu_anime import Anime
+from kitsu.kitsu_episode import KitsuEpisode
 from util.path_functions import remove_illegal_char
 
 kitsu_base_url = "https://kitsu.io/api/edge/"
@@ -27,22 +27,28 @@ def get_request(url, params=None) -> object:
 
 
 def kitsu_anime(media_id) -> Anime:
-    return Anime(get_request(f'{kitsu_base_url}/anime/{media_id}')['data'])
+    return Anime(get_request(f'{kitsu_base_url}/kitsu/{media_id}')['data'])
 
 
-def kitsu_anime_search(query, subtype=None) -> List[Anime]:
+def kitsu_anime_search(query, subtype=None, slug=False) -> List[Anime]:
     params = {
-        "filter[text]": query,
         "page[limit]": 10
     }
     if subtype is not None:
         params["filter[subtype]"] = subtype
+    if slug:
+        params["filter[slug]"] = query
+    else:
+        params["filter[text]"] = query
 
-    return [Anime(data) for data in get_request(f'{kitsu_base_url}/anime', params=params)["data"]]
+    return [Anime(data) for data in get_request(f'{kitsu_base_url}/kitsu', params=params)["data"]]
 
 
-def kitsu_anime_inquire(query, subtype=None) -> Union[None, Anime]:
-    json_list = kitsu_anime_search(query, subtype=subtype)
+def kitsu_anime_inquire(query, subtype=None, slug=False) -> Union[None, Anime]:
+    json_list = kitsu_anime_search(query, subtype=subtype, slug=slug)
+    if len(json_list) == 0:
+        return None
+
     print()
     for i, v in enumerate(reversed(json_list)):
         print(f"{len(json_list) - i}. {v.title} ({v.id}) - {v.subtype} - https://kitsu.io/anime/{v.id}")
@@ -51,6 +57,9 @@ def kitsu_anime_inquire(query, subtype=None) -> Union[None, Anime]:
     print()
 
     answer = input("Which Series? [1]: ") or "1"
+    if answer.startswith("*"):
+        answer = answer[1:]
+        return kitsu_anime_inquire(answer, subtype=subtype, slug=True)
     answer = int(answer) - 1
 
     if answer < 0 or answer > len(json_list):
@@ -80,6 +89,15 @@ def kitsu_anime_get_episodes(anime: Anime, limit: int = 10, offset: int = 0) -> 
 
 def kitsu_anime_get_all_episodes(anime: Anime) -> List[KitsuEpisode]:
     episodes = []
+    if anime.episode_count is None:
+        anime.episode_count = get_request(f'{kitsu_base_url}/episodes', params={
+            'filter[mediaType]': "Anime",
+            'page[limit]': 10,
+            'page[offset]': 0,
+            'filter[media_id]': anime.id,
+            'sort': 'number'
+        })["meta"]["count"]
+        pass
     while len(episodes) < anime.episode_count:
         episodes += kitsu_anime_get_episodes(anime, limit=10, offset=len(episodes))
 
@@ -130,12 +148,12 @@ class KitsuData:
 
     def to_json(self):
         result = {
-            "anime": None,
+            "kitsu": None,
             "episodes": [],
             "parameters": self.parameters
         }
         if self.anime is not None:
-            result["anime"] = self.anime.to_json()
+            result["kitsu"] = self.anime.to_json()
 
         if self.episodes is not None:
             for episode in self.episodes:
@@ -155,7 +173,7 @@ class KitsuData:
         with open(filepath, "r") as file:
             json_data = json.loads(file.read())
 
-            self.anime = Anime(json_data["anime"])
+            self.anime = Anime(json_data["kitsu"])
             self.episodes = []
             for episode in json_data["episodes"]:
                 self.episodes.append(KitsuEpisode.from_dict(episode))
@@ -175,9 +193,9 @@ def inquire_kitsu_data(query, subtype=None):
 
 
 def inquire_kitsu_data_by_id(media_id):
-    return KitsuData().set_anime_by_id(media_id)
+    return KitsuData().set_anime_by_id(media_id).fill_episodes()
 
 
 if __name__ == '__main__':
-    data = inquire_kitsu_data("Ansatsu Kyoushitsu", "TV")
+    data = kitsu_anime_inquire("id-invaded")
     print(data)

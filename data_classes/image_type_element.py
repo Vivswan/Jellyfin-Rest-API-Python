@@ -1,3 +1,6 @@
+from util.CaseInsensitiveEnum import CaseInsensitiveEnum
+
+
 class ImageTypeElement(CaseInsensitiveEnum):
     """Gets or sets the type.
     

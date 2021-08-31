@@ -1,3 +1,4 @@
+from util.from_type import *
 class GroupStateTypeEnum(CaseInsensitiveEnum):
     """Gets the group state.
     

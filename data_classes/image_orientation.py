@@ -1,3 +1,4 @@
+from util.from_type import *
 class ImageOrientation(CaseInsensitiveEnum):
     BOTTOM_LEFT = "BottomLeft"
     BOTTOM_RIGHT = "BottomRight"

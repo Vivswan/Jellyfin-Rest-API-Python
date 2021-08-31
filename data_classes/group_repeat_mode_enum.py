@@ -1,3 +1,4 @@
+from util.from_type import *
 class GroupRepeatModeEnum(CaseInsensitiveEnum):
     """Gets or sets the repeat mode.
     

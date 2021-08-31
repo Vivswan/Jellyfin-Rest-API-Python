@@ -1,3 +1,4 @@
+from util.from_type import *
 class GroupShuffleModeEnum(CaseInsensitiveEnum):
     """Enum GroupShuffleMode.
     

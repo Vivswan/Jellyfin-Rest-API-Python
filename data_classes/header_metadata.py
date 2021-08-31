@@ -1,3 +1,4 @@
+from util.from_type import *
 class HeaderMetadata(CaseInsensitiveEnum):
     ACTOR = "Actor"
     ALBUM = "Album"

@@ -1,3 +1,6 @@
+from util.from_type import *
+
+
 class ISOType(CaseInsensitiveEnum):
     """Gets or sets the type of the iso.
     
@@ -5,5 +8,3 @@ class ISOType(CaseInsensitiveEnum):
     """
     BLU_RAY = "BluRay"
     DVD = "Dvd"
-
-

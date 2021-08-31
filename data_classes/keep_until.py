@@ -1,3 +1,4 @@
+from util.from_type import *
 class KeepUntil(CaseInsensitiveEnum):
     UNTIL_DATE = "UntilDate"
     UNTIL_DELETED = "UntilDeleted"

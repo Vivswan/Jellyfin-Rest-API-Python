@@ -1,3 +1,6 @@
+from util.from_type import *
+
+
 class Level(CaseInsensitiveEnum):
     """Gets or sets the notification level.
     
@@ -6,5 +9,3 @@ class Level(CaseInsensitiveEnum):
     ERROR = "Error"
     NORMAL = "Normal"
     WARNING = "Warning"
-
-

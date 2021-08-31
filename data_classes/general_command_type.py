@@ -1,3 +1,4 @@
+from util.from_type import *
 class GeneralCommandType(CaseInsensitiveEnum):
     """This exists simply to identify a set of known commands."""
     BACK = "Back"

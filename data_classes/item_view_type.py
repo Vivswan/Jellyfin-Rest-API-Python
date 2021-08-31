@@ -1,3 +1,4 @@
+from util.from_type import *
 class ItemViewType(CaseInsensitiveEnum):
     DETAIL = "Detail"
     EDIT = "Edit"

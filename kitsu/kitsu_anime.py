@@ -68,7 +68,7 @@ class Anime(MediaEntry):
         else:
             attributes = data
 
-        super().__init__(data['id'], "anime", attributes)
+        super().__init__(data['id'], "kitsu", attributes)
 
         self.episode_count = any_key_dict(attributes, 'episodeCount', 'episode_count')
         self.episode_length = any_key_dict(attributes, 'episodeLength', 'episode_length')
